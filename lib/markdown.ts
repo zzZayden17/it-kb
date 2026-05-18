@@ -37,6 +37,15 @@ export async function parseArticle(raw: string): Promise<ParsedArticle> {
 }
 
 /**
+ * Extracts only the front matter from a raw Markdown string, without rendering
+ * the body to HTML. Use this on list/index pages where you need metadata for
+ * many articles but don't need the rendered content.
+ */
+export function parseFrontmatter(raw: string): ArticleFrontmatter {
+  return matter(raw).data as ArticleFrontmatter;
+}
+
+/**
  * Serializes a front matter object and a Markdown body back into a raw .md
  * string suitable for writing to GitHub via upsertArticle().
  *
