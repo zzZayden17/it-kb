@@ -24,3 +24,91 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ── Article body ────────────────────────────────────────────────────────────
+   Tailwind resets all browser default element styles. This block re-applies
+   readable typographic defaults inside the rendered Markdown HTML that
+   parseArticle() produces — headings, paragraphs, lists, code, blockquotes.
+   Scoped to .article-body so it only affects the injected HTML region.
+*/
+.article-body h1,
+.article-body h2,
+.article-body h3,
+.article-body h4 {
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.article-body h1 { font-size: 1.875rem; }
+.article-body h2 { font-size: 1.5rem; }
+.article-body h3 { font-size: 1.25rem; }
+.article-body h4 { font-size: 1.125rem; }
+
+.article-body p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.article-body ul,
+.article-body ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+.article-body ul { list-style-type: disc; }
+.article-body ol { list-style-type: decimal; }
+.article-body li { margin-bottom: 0.25rem; line-height: 1.75; }
+
+.article-body a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.article-body a:hover { color: #1d4ed8; }
+
+.article-body pre {
+  background: #18181b;
+  color: #d4d4d8;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.article-body code {
+  background: #f4f4f5;
+  color: #18181b;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+/* Don't double-style code inside pre */
+.article-body pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+.article-body blockquote {
+  border-left: 4px solid #d4d4d8;
+  padding-left: 1rem;
+  color: #71717a;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+  .article-body a { color: #60a5fa; }
+  .article-body a:hover { color: #93c5fd; }
+  .article-body code {
+    background: #27272a;
+    color: #e4e4e7;
+  }
+  .article-body blockquote {
+    border-left-color: #52525b;
+    color: #a1a1aa;
+  }
+}
