@@ -141,11 +141,3 @@ They will need a registered authentication method (phone, email, or authenticato
 | Account still locked after password reset | Lockout not cleared | Run `Unlock-ADAccount` or untick **Account is locked out** in ADUC |
 | EFS-encrypted files unreadable | Local admin-forced reset destroyed the DPAPI master key | Restore from a backup of the user's certificates, or recover via the EFS recovery agent |
 | Outlook keeps prompting for password | Stored credential is stale | Clear entries in **Credential Manager** → **Windows Credentials** |
-
----
-
-## Related Articles
-
-- Unlocking an Active Directory account
-- Configuring Azure AD Self-Service Password Reset
-- Recovering BitLocker keys
