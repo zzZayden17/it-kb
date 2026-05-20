@@ -1,6 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { cookies } from "next/headers";
+import crypto from "crypto";
 import { listArticles, getArticle, upsertArticle } from "@/lib/github";
 import { serializeArticle } from "@/lib/markdown";
+
+function sessionToken() {
+  return crypto
+    .createHmac("sha256", process.env.ADMIN_PASSWORD ?? "")
+    .update("it-kb-admin-session")
+    .digest("hex");
+}
 
 const client = new Anthropic();
 
@@ -126,6 +135,12 @@ async function runTool(
 }
 
 export async function POST(request: Request) {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("admin_session")?.value;
+  if (!session || session !== sessionToken()) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { messages } = (await request.json()) as {
     messages: Anthropic.MessageParam[];
   };
