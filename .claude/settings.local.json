@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(node *)",
-      "Skill(claude-api)"
+      "Skill(claude-api)",
+      "Bash(claude doctor *)",
+      "WebFetch(domain:rayzina.com)",
+      "Bash(dir C:UserszrdieRayzinaProjectsit-kb *)"
     ]
   }
 }

@@ -2,10 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getArticle } from '@/lib/github'
 import { parseArticle } from '@/lib/markdown'
+import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 
-// generateMetadata runs before the page renders and populates <title> and
-// <meta name="description"> in the <head>. It receives the same params as the
-// page so it can fetch the article's front matter without duplicating logic.
 export async function generateMetadata({
   params,
 }: {
@@ -29,102 +28,90 @@ export default async function ArticlePage({
 }: {
   params: Promise<{ slug: string }>
 }) {
-  // params is a Promise in Next.js 16 App Router — must be awaited before use.
   const { slug } = await params
 
   let raw: string
   try {
     ;({ raw } = await getArticle(slug))
   } catch {
-    // getArticle throws when Octokit returns a 404 (file not in the repo).
-    // notFound() renders the built-in Next.js 404 page.
     notFound()
   }
 
   const { frontmatter, html } = await parseArticle(raw)
 
   return (
-    // Page container — centred column with comfortable reading width.
-    <div className="mx-auto max-w-2xl px-4 py-10">
+    <>
+      <Nav />
 
-      {/* ── Back link ────────────────────────────────────────────────────────
-          Always points to /articles, not router.back(), so the destination is
-          predictable regardless of how the user arrived at this page.
-          inline-flex + items-center aligns the chevron icon with the text.
-      */}
-      <Link
-        href="/articles"
-        className="mb-8 inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        All articles
-      </Link>
+      <main className="flex-1 bg-white">
+        <div className="mx-auto max-w-3xl px-6 py-20">
 
-      {/* ── Article header ───────────────────────────────────────────────── */}
-      <header className="mb-8 border-b border-zinc-200 pb-6 dark:border-zinc-800">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-          {frontmatter.title}
-        </h1>
-
-        {/* Description — rendered if present in front matter */}
-        {frontmatter.description && (
-          <p className="mt-2 text-base text-zinc-500 dark:text-zinc-400">
-            {frontmatter.description}
-          </p>
-        )}
-
-        {/* Meta row — date and tags side by side */}
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {frontmatter.date && (
-            <time
-              dateTime={frontmatter.date}
-              className="text-sm text-zinc-400 dark:text-zinc-500"
+          <Link
+            href="/articles"
+            className="mb-12 inline-flex items-center gap-1.5 text-sm text-zinc-400 transition-colors hover:text-[#4241fe]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              {new Date(frontmatter.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-          )}
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            All articles
+          </Link>
 
-          {/* Tag pills — only rendered if the front matter includes tags */}
-          {frontmatter.tags?.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-zinc-100 px-3 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-            >
-              {tag}
-            </span>
-          ))}
+          <header className="mb-12 border-b border-zinc-200 pb-10">
+            <h1 className="text-5xl font-black leading-[1.05] tracking-tight text-zinc-900">
+              {frontmatter.title}
+            </h1>
+
+            {frontmatter.description && (
+              <p className="mt-4 text-lg leading-8 text-zinc-500">
+                {frontmatter.description}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {frontmatter.date && (
+                <time
+                  dateTime={frontmatter.date}
+                  className="text-xs text-zinc-400"
+                >
+                  {new Date(frontmatter.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </time>
+              )}
+
+              {frontmatter.tags?.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-[#4241fe]/10 px-3 py-0.5 text-xs font-semibold text-[#4241fe] ring-1 ring-[#4241fe]/20"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </header>
+
+          <div
+            className="article-body text-zinc-800"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+
         </div>
-      </header>
+      </main>
 
-      {/* ── Article body ─────────────────────────────────────────────────────
-          parseArticle() converts the Markdown body to an HTML string.
-          dangerouslySetInnerHTML injects it directly — safe here because the
-          content is admin-authored (you wrote it to GitHub yourself).
-          The article-body class in globals.css re-applies typographic defaults
-          that Tailwind's reset removed (heading sizes, list bullets, etc.).
-      */}
-      <div
-        className="article-body text-zinc-800 dark:text-zinc-200"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-
-    </div>
+      <Footer />
+    </>
   )
 }

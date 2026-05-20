@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { listArticles, getArticle } from '@/lib/github'
 import { parseFrontmatter } from '@/lib/markdown'
+import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
+
+export const metadata = { title: 'Articles' }
 
 export default async function ArticlesIndexPage() {
-  // ── Fetch article list ──────────────────────────────────────────────────────
-  //
-  // listArticles() throws if the articles/ directory doesn't exist yet.
-  // We treat that the same as "zero articles" — the empty state handles it.
   let slugs: string[] = []
   try {
     const refs = await listArticles()
@@ -15,11 +15,6 @@ export default async function ArticlesIndexPage() {
     // directory missing or API error — fall through to empty state
   }
 
-  // ── Fetch frontmatter for every article in parallel ─────────────────────────
-  //
-  // Promise.allSettled lets the page render even if individual fetches fail.
-  // Rejected entries (e.g. a file deleted between the list call and now)
-  // are filtered out rather than crashing the whole page.
   const settled = await Promise.allSettled(
     slugs.map(async (slug) => {
       const { raw } = await getArticle(slug)
@@ -34,7 +29,6 @@ export default async function ArticlesIndexPage() {
     )
     .map((r) => r.value)
 
-  // Sort newest-first. Articles without a date go to the end.
   articles.sort((a, b) => {
     const da = a.frontmatter.date
     const db = b.frontmatter.date
@@ -44,81 +38,95 @@ export default async function ArticlesIndexPage() {
     return new Date(db).getTime() - new Date(da).getTime()
   })
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
+    <>
+      <Nav />
 
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-          Knowledge Base
-        </h1>
-        {articles.length > 0 && (
-          <p className="mt-1 text-sm text-zinc-500">
-            {articles.length} article{articles.length !== 1 ? 's' : ''}
-          </p>
-        )}
-      </header>
+      <main className="flex-1 bg-white">
+        <div className="mx-auto max-w-3xl px-6 py-20">
 
-      {articles.length === 0 ? (
-        // ── Empty state ──────────────────────────────────────────────────────
-        // Shown when the articles/ directory is missing OR contains no .md files.
-        <div className="flex flex-col items-center gap-2 py-24 text-center text-zinc-400">
-          <p className="text-lg font-medium">No articles yet</p>
-          <p className="text-sm">
-            Use the{' '}
-            <Link
-              href="/admin"
-              className="underline decoration-zinc-300 hover:text-zinc-600 dark:decoration-zinc-600 dark:hover:text-zinc-300"
-            >
-              admin panel
-            </Link>
-            {' '}to create the first one.
-          </p>
-        </div>
-      ) : (
-        // ── Article list ─────────────────────────────────────────────────────
-        // Each item is a full-row link so the entire card is clickable, not
-        // just the title text. divide-y draws separators between items without
-        // needing explicit margin/padding on each.
-        <ul className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
-          {articles.map(({ slug, frontmatter }) => (
-            <li key={slug}>
-              <Link
-                href={`/articles/${slug}`}
-                className="group flex flex-col gap-1 py-5"
-              >
-                {/* Title — underlines on hover via group-hover so the whole
-                    row triggers it, not just hovering the text directly. */}
-                <span className="text-base font-semibold text-zinc-900 group-hover:underline dark:text-zinc-50">
-                  {frontmatter.title}
-                </span>
+          <header className="mb-12">
+            <h1 className="text-3xl font-bold text-zinc-900">
+              Articles
+            </h1>
+            {articles.length > 0 && (
+              <p className="mt-2 text-sm text-zinc-400">
+                {articles.length} article{articles.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </header>
 
-                {/* Description — optional, not every article will have one */}
-                {frontmatter.description && (
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {frontmatter.description}
-                  </span>
-                )}
-
-                {/* Date — optional, formatted as "May 18, 2026" */}
-                {frontmatter.date && (
-                  <time
-                    dateTime={frontmatter.date}
-                    className="text-xs text-zinc-400 dark:text-zinc-500"
+          {articles.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 py-24 text-center">
+              <p className="text-sm font-medium text-zinc-400">No articles yet</p>
+              <p className="text-sm text-zinc-400">
+                Use the{' '}
+                <Link href="/admin" className="text-[#4241fe] hover:underline">
+                  admin panel
+                </Link>
+                {' '}to create the first one.
+              </p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-4">
+              {articles.map(({ slug, frontmatter }) => (
+                <li key={slug}>
+                  <Link
+                    href={`/articles/${slug}`}
+                    className="group block rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-[#4241fe]/50 hover:shadow-md"
                   >
-                    {new Date(frontmatter.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </time>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="text-base font-semibold text-zinc-900 transition-colors group-hover:text-[#4241fe]">
+                        {frontmatter.title}
+                      </span>
+                      {frontmatter.date && (
+                        <time
+                          dateTime={frontmatter.date}
+                          className="shrink-0 pt-0.5 text-xs text-zinc-400"
+                        >
+                          {new Date(frontmatter.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </time>
+                      )}
+                    </div>
 
-    </div>
+                    {frontmatter.description && (
+                      <p className="mt-2 text-sm leading-6 text-zinc-500">
+                        {frontmatter.description}
+                      </p>
+                    )}
+
+                    <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-[#4241fe] opacity-0 transition-opacity group-hover:opacity-100">
+                      Read article
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+
+        </div>
+      </main>
+
+      <Footer />
+    </>
   )
 }
